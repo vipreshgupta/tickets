@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { TicketVerification } from "@/types";
 
-export default function VerifyPage() {
+function VerifyContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const sig = searchParams.get("sig");
@@ -137,5 +137,13 @@ export default function VerifyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center"><div className="h-10 w-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+      <VerifyContent />
+    </Suspense>
   );
 }
