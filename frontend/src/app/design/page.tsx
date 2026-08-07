@@ -35,6 +35,7 @@ export default function DesignStudio() {
   const [loadedTemplateId, setLoadedTemplateId] = useState<string | null>(null);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [pendingTemplateZones, setPendingTemplateZones] = useState<Zone[] | null>(null);
 
   const stageRef = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -48,6 +49,26 @@ export default function DesignStudio() {
   const scaleX = bgImageObj ? CANVAS_WIDTH / bgImageObj.width : 1;
   const scaleY = bgImageObj ? CANVAS_HEIGHT / bgImageObj.height : 1;
   const bgScale = Math.min(scaleX, scaleY);
+
+  const imgW = bgImageObj ? bgImageObj.width * bgScale : CANVAS_WIDTH;
+  const imgH = bgImageObj ? bgImageObj.height * bgScale : CANVAS_HEIGHT;
+  const imgX = bgImageObj ? (CANVAS_WIDTH - imgW) / 2 : 0;
+  const imgY = bgImageObj ? (CANVAS_HEIGHT - imgH) / 2 : 0;
+
+  useEffect(() => {
+    if (bgImageObj && pendingTemplateZones) {
+      const editorZones = pendingTemplateZones.map((z) => ({
+        ...z,
+        id: uuidv4(),
+        x: imgX + (z.x / 100) * imgW,
+        y: imgY + (z.y / 100) * imgH,
+        width: (z.width / 100) * imgW,
+        height: (z.height / 100) * imgH,
+      }));
+      setZones(editorZones);
+      setPendingTemplateZones(null);
+    }
+  }, [bgImageObj, pendingTemplateZones, imgX, imgY, imgW, imgH]);
 
   useEffect(() => {
     const loggedIn = api.isLoggedIn();
@@ -137,10 +158,10 @@ export default function DesignStudio() {
     setError(null);
     try {
       const normalizedZones: Zone[] = zones.map((z) => ({
-        x: Math.max(0, Math.min(100, (z.x / CANVAS_WIDTH) * 100)),
-        y: Math.max(0, Math.min(100, (z.y / CANVAS_HEIGHT) * 100)),
-        width: Math.max(0.5, Math.min(100, (z.width / CANVAS_WIDTH) * 100)),
-        height: Math.max(0.5, Math.min(100, (z.height / CANVAS_HEIGHT) * 100)),
+        x: Math.max(0, Math.min(100, ((z.x - imgX) / imgW) * 100)),
+        y: Math.max(0, Math.min(100, ((z.y - imgY) / imgH) * 100)),
+        width: Math.max(0.5, Math.min(100, (z.width / imgW) * 100)),
+        height: Math.max(0.5, Math.min(100, (z.height / imgH) * 100)),
         row_index: z.row_index,
         column_index: z.column_index,
         font: z.font,
@@ -167,17 +188,7 @@ export default function DesignStudio() {
     // Create a dummy file to satisfy the validation requirement if we need to fall back
     setBgFile(new File([], "placeholder.jpg")); 
     
-    // Denormalize zones
-    const editorZones = template.zones.map((z) => ({
-      ...z,
-      id: uuidv4(),
-      x: (z.x / 100) * CANVAS_WIDTH,
-      y: (z.y / 100) * CANVAS_HEIGHT,
-      width: (z.width / 100) * CANVAS_WIDTH,
-      height: (z.height / 100) * CANVAS_HEIGHT,
-    }));
-    
-    setZones(editorZones);
+    setPendingTemplateZones(template.zones);
     setLoadedTemplateId(template.id);
   };
 
@@ -197,10 +208,10 @@ export default function DesignStudio() {
     try {
       // Normalize zones to percentages (0-100) based on canvas size and clamp to valid bounds
       const normalizedZones: Zone[] = zones.map((z) => ({
-        x: Math.max(0, Math.min(100, (z.x / CANVAS_WIDTH) * 100)),
-        y: Math.max(0, Math.min(100, (z.y / CANVAS_HEIGHT) * 100)),
-        width: Math.max(0.5, Math.min(100, (z.width / CANVAS_WIDTH) * 100)),
-        height: Math.max(0.5, Math.min(100, (z.height / CANVAS_HEIGHT) * 100)),
+        x: Math.max(0, Math.min(100, ((z.x - imgX) / imgW) * 100)),
+        y: Math.max(0, Math.min(100, ((z.y - imgY) / imgH) * 100)),
+        width: Math.max(0.5, Math.min(100, (z.width / imgW) * 100)),
+        height: Math.max(0.5, Math.min(100, (z.height / imgH) * 100)),
         row_index: z.row_index,
         column_index: z.column_index,
         font: z.font,
