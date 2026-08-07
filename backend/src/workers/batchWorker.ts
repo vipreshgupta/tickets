@@ -105,7 +105,7 @@ async function processBatchJob(job: Job<{ batchId: string }>): Promise<void> {
     });
 
     const imagePaths = await renderTicketImages(
-      dbTickets,
+      dbTickets.map(t => ({ ...t, numbers: t.numbers as number[][] })),
       templateData,
       batchId,
       async (rendered, total) => {
