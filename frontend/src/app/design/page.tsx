@@ -13,6 +13,27 @@ interface EditorZone extends Zone {
   id: string;
 }
 
+function assignLogicalGrid(zones: EditorZone[]): EditorZone[] {
+  if (zones.length !== 27) return zones;
+  
+  // Sort by center Y to find the 3 rows
+  const sortedByY = [...zones].sort((a, b) => (a.y + a.height / 2) - (b.y + b.height / 2));
+  
+  const rows = [
+    sortedByY.slice(0, 9).sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2)),
+    sortedByY.slice(9, 18).sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2)),
+    sortedByY.slice(18, 27).sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2))
+  ];
+
+  const assigned: EditorZone[] = [];
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 9; c++) {
+      assigned.push({ ...rows[r][c], row_index: r, column_index: c });
+    }
+  }
+  return assigned;
+}
+
 export default function DesignStudio() {
   const router = useRouter();
 
@@ -136,7 +157,8 @@ export default function DesignStudio() {
     setSavingTemplate(true);
     setError(null);
     try {
-      const normalizedZones: Zone[] = zones.map((z) => ({
+      const gridAssignedZones = assignLogicalGrid(zones);
+      const normalizedZones: Zone[] = gridAssignedZones.map((z) => ({
         x: Math.max(0, Math.min(100, (z.x / CANVAS_WIDTH) * 100)),
         y: Math.max(0, Math.min(100, (z.y / CANVAS_HEIGHT) * 100)),
         width: Math.max(0.5, Math.min(100, (z.width / CANVAS_WIDTH) * 100)),
@@ -196,7 +218,8 @@ export default function DesignStudio() {
 
     try {
       // Normalize zones to percentages (0-100) based on canvas size and clamp to valid bounds
-      const normalizedZones: Zone[] = zones.map((z) => ({
+      const gridAssignedZones = assignLogicalGrid(zones);
+      const normalizedZones: Zone[] = gridAssignedZones.map((z) => ({
         x: Math.max(0, Math.min(100, (z.x / CANVAS_WIDTH) * 100)),
         y: Math.max(0, Math.min(100, (z.y / CANVAS_HEIGHT) * 100)),
         width: Math.max(0.5, Math.min(100, (z.width / CANVAS_WIDTH) * 100)),
