@@ -13,27 +13,6 @@ interface EditorZone extends Zone {
   id: string;
 }
 
-function assignLogicalGrid(zones: EditorZone[]): EditorZone[] {
-  if (zones.length !== 27) return zones;
-  
-  // Sort by center Y to find the 3 rows
-  const sortedByY = [...zones].sort((a, b) => (a.y + a.height / 2) - (b.y + b.height / 2));
-  
-  const rows = [
-    sortedByY.slice(0, 9).sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2)),
-    sortedByY.slice(9, 18).sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2)),
-    sortedByY.slice(18, 27).sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2))
-  ];
-
-  const assigned: EditorZone[] = [];
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 9; c++) {
-      assigned.push({ ...rows[r][c], row_index: r, column_index: c });
-    }
-  }
-  return assigned;
-}
-
 export default function DesignStudio() {
   const router = useRouter();
 
@@ -157,8 +136,7 @@ export default function DesignStudio() {
     setSavingTemplate(true);
     setError(null);
     try {
-      const gridAssignedZones = assignLogicalGrid(zones);
-      const normalizedZones: Zone[] = gridAssignedZones.map((z) => ({
+      const normalizedZones: Zone[] = zones.map((z) => ({
         x: Math.max(0, Math.min(100, (z.x / CANVAS_WIDTH) * 100)),
         y: Math.max(0, Math.min(100, (z.y / CANVAS_HEIGHT) * 100)),
         width: Math.max(0.5, Math.min(100, (z.width / CANVAS_WIDTH) * 100)),
@@ -218,8 +196,7 @@ export default function DesignStudio() {
 
     try {
       // Normalize zones to percentages (0-100) based on canvas size and clamp to valid bounds
-      const gridAssignedZones = assignLogicalGrid(zones);
-      const normalizedZones: Zone[] = gridAssignedZones.map((z) => ({
+      const normalizedZones: Zone[] = zones.map((z) => ({
         x: Math.max(0, Math.min(100, (z.x / CANVAS_WIDTH) * 100)),
         y: Math.max(0, Math.min(100, (z.y / CANVAS_HEIGHT) * 100)),
         width: Math.max(0.5, Math.min(100, (z.width / CANVAS_WIDTH) * 100)),
@@ -425,11 +402,6 @@ export default function DesignStudio() {
                           if (idx >= 0) {
                             nodes[idx].x = e.target.x();
                             nodes[idx].y = e.target.y();
-                            // Auto-detect column based on center X
-                            const centerX = e.target.x() + e.target.width() / 2;
-                            const centerY = e.target.y() + e.target.height() / 2;
-                            nodes[idx].column_index = Math.min(8, Math.max(0, Math.floor(centerX / (CANVAS_WIDTH / 9))));
-                            nodes[idx].row_index = Math.min(2, Math.max(0, Math.floor(centerY / (CANVAS_HEIGHT / 3))));
                             setZones(nodes);
                             setLoadedTemplateId(null); // Modifying means it's no longer the saved template
                           }
