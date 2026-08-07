@@ -22,7 +22,7 @@ const loginSchema = z.object({
 
 function signToken(userId: string): string {
   return jwt.sign({ sub: userId }, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN,
+    expiresIn: config.JWT_EXPIRES_IN as any,
   });
 }
 

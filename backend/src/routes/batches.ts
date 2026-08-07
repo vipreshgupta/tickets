@@ -157,7 +157,7 @@ router.post(
 router.get("/:id", optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const batch = await prisma.batch.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       select: {
         id: true,
         status: true,
@@ -186,7 +186,7 @@ router.get("/:id", optionalAuth, async (req: AuthRequest, res: Response, next: N
  */
 router.get("/:id/progress", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const batch = await prisma.batch.findUnique({ where: { id: req.params.id } });
+    const batch = await prisma.batch.findUnique({ where: { id: req.params.id as string } });
     if (!batch) {
       throw createError(404, "Batch not found", "NOT_FOUND");
     }
@@ -205,7 +205,7 @@ router.get("/:id/progress", async (req: AuthRequest, res: Response, next: NextFu
     const interval = setInterval(async () => {
       try {
         const updated = await prisma.batch.findUnique({
-          where: { id: req.params.id },
+          where: { id: req.params.id as string },
           select: {
             status: true,
             progressPercent: true,
@@ -257,7 +257,7 @@ router.get("/:id/progress", async (req: AuthRequest, res: Response, next: NextFu
  */
 router.get("/:id/download/pdf", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const batch = await prisma.batch.findUnique({ where: { id: req.params.id } });
+    const batch = await prisma.batch.findUnique({ where: { id: req.params.id as string } });
 
     if (!batch) throw createError(404, "Batch not found", "NOT_FOUND");
     if (batch.status !== "complete") throw createError(400, "Batch is not complete", "NOT_READY");
@@ -275,7 +275,7 @@ router.get("/:id/download/pdf", async (req: AuthRequest, res: Response, next: Ne
  */
 router.get("/:id/download/zip", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const batch = await prisma.batch.findUnique({ where: { id: req.params.id } });
+    const batch = await prisma.batch.findUnique({ where: { id: req.params.id as string } });
 
     if (!batch) throw createError(404, "Batch not found", "NOT_FOUND");
     if (batch.status !== "complete") throw createError(400, "Batch is not complete", "NOT_READY");
@@ -293,7 +293,7 @@ router.get("/:id/download/zip", async (req: AuthRequest, res: Response, next: Ne
  */
 router.post("/:id/cancel", optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const batch = await prisma.batch.findUnique({ where: { id: req.params.id } });
+    const batch = await prisma.batch.findUnique({ where: { id: req.params.id as string } });
     if (!batch) throw createError(404, "Batch not found", "NOT_FOUND");
 
     if (batch.status === "complete" || batch.status === "failed") {
