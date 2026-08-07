@@ -107,7 +107,7 @@ router.get("/", requireAuth, async (req: AuthRequest, res: Response, next: NextF
 router.get("/:id", requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const template = await prisma.template.findFirst({
-      where: { id: req.params.id, userId: req.userId! },
+      where: { id: req.params.id as string, userId: req.userId! },
     });
 
     if (!template) {
@@ -126,14 +126,14 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response, next: Ne
 router.delete("/:id", requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const template = await prisma.template.findFirst({
-      where: { id: req.params.id, userId: req.userId! },
+      where: { id: req.params.id as string, userId: req.userId! },
     });
 
     if (!template) {
       throw createError(404, "Template not found", "NOT_FOUND");
     }
 
-    await prisma.template.delete({ where: { id: req.params.id } });
+    await prisma.template.delete({ where: { id: req.params.id as string } });
     res.json({ message: "Template deleted" });
   } catch (err) {
     next(err);

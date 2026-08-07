@@ -301,12 +301,12 @@ router.post("/:id/cancel", optionalAuth, async (req: AuthRequest, res: Response,
     }
 
     await prisma.batch.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { status: "cancelled", errorReason: "Cancelled by user" },
     });
 
     // Try to remove from queue
-    const job = await batchQueue.getJob(req.params.id);
+    const job = await batchQueue.getJob(req.params.id as string);
     if (job) await job.remove();
 
     res.json({ message: "Batch cancelled" });
